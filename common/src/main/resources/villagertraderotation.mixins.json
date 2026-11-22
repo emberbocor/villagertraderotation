@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.github.emberbocor.villagertraderotation.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "AbstractVillagerInvoker",
+    "MobMixin",
+    "TreasureMapForEmeraldsMixin",
+    "TypeSpecificTradeAccessor",
+    "VillagerMixin",
+    "ZombieVillagerMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}

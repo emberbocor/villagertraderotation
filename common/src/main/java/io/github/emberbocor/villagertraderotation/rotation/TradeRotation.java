@@ -1,7 +1,5 @@
 package io.github.emberbocor.villagertraderotation.rotation;
 
-import org.jetbrains.annotations.Nullable;
-
 import io.github.emberbocor.villagertraderotation.config.ServerConfig;
 import io.github.emberbocor.villagertraderotation.mixin.AbstractVillagerInvoker;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -10,7 +8,6 @@ import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerData;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
-import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
 
@@ -23,6 +20,8 @@ public final class TradeRotation {
     /**
      * Called at the start of the vanilla restock check, which a villager runs each time it works at its job site.
      */
+    // Forge deprecates the vanilla profession registry in favour of ForgeRegistries, which common code cannot use.
+    @SuppressWarnings("deprecation")
     public static void onRestockCheck(Villager villager) {
         ServerConfig.Settings settings = ServerConfig.settings();
         VillagerProfession profession = villager.getVillagerData().getProfession();
@@ -40,7 +39,7 @@ public final class TradeRotation {
         if (today - lastDay < settings.rerollIntervalDays() || villager.isTrading()) {
             return;
         }
-        Int2ObjectMap<VillagerTrades.ItemListing[]> pool = tradePool(villager, profession);
+        Int2ObjectMap<VillagerTrades.ItemListing[]> pool = VillagerTrades.TRADES.get(profession);
         if (pool == null || pool.isEmpty()) {
             return;
         }
@@ -62,19 +61,5 @@ public final class TradeRotation {
             }
         });
         villager.setOffers(offers);
-    }
-
-    /**
-     * The trade pool vanilla's Villager.updateTrades uses for the profession.
-     */
-    @Nullable
-    private static Int2ObjectMap<VillagerTrades.ItemListing[]> tradePool(Villager villager, VillagerProfession profession) {
-        if (villager.level().enabledFeatures().contains(FeatureFlags.TRADE_REBALANCE)) {
-            Int2ObjectMap<VillagerTrades.ItemListing[]> experimental = VillagerTrades.EXPERIMENTAL_TRADES.get(profession);
-            if (experimental != null) {
-                return experimental;
-            }
-        }
-        return VillagerTrades.TRADES.get(profession);
     }
 }

@@ -3,11 +3,8 @@ package io.github.emberbocor.villagertraderotation.rotation;
 import org.jetbrains.annotations.Nullable;
 
 import io.github.emberbocor.villagertraderotation.VillagerTradeRotation;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.RegistryOps;
 
 /**
  * The mod's data on a villager or zombie villager: the day of the last rotation and the map cache.
@@ -15,7 +12,8 @@ import net.minecraft.resources.RegistryOps;
 public final class RotationData {
     private static final String NBT_KEY = VillagerTradeRotation.MODID + ":rotation";
     private static final String LAST_DAY_KEY = "last_day";
-    private static final String MAPS_KEY = "maps";
+    // Own key on 1.20.1: the map items use the old item NBT format, which later versions would read as blank maps.
+    private static final String MAPS_KEY = "maps_1_20";
 
     @Nullable
     private Long lastDay;
@@ -34,7 +32,7 @@ public final class RotationData {
         return maps;
     }
 
-    public void save(RegistryAccess registries, CompoundTag tag) {
+    public void save(CompoundTag tag) {
         if (lastDay == null && maps.isEmpty()) {
             return;
         }
@@ -43,18 +41,17 @@ public final class RotationData {
             data.putLong(LAST_DAY_KEY, lastDay);
         }
         if (!maps.isEmpty()) {
-            maps.save(registries.createSerializationContext(NbtOps.INSTANCE)).ifPresent(saved -> data.put(MAPS_KEY, saved));
+            data.put(MAPS_KEY, maps.save());
         }
         tag.put(NBT_KEY, data);
     }
 
-    public void load(RegistryAccess registries, CompoundTag tag) {
+    public void load(CompoundTag tag) {
         if (!tag.contains(NBT_KEY, Tag.TAG_COMPOUND)) {
             return;
         }
         CompoundTag data = tag.getCompound(NBT_KEY);
         lastDay = data.contains(LAST_DAY_KEY, Tag.TAG_LONG) ? data.getLong(LAST_DAY_KEY) : null;
-        RegistryOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
-        maps.load(ops, data.get(MAPS_KEY));
+        maps.load(data.get(MAPS_KEY));
     }
 }

@@ -4,37 +4,30 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 import org.jetbrains.annotations.Nullable;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-
 import io.github.emberbocor.villagertraderotation.VillagerTradeRotation;
-import io.github.emberbocor.villagertraderotation.mixin.TypeSpecificTradeAccessor;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import net.minecraft.Util;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.MapDecorations;
-import net.minecraft.world.item.trading.ItemCost;
+import net.minecraft.world.item.MapItem;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.levelgen.structure.Structure;
-import net.minecraft.world.level.saveddata.maps.MapDecorationType;
+import net.minecraft.world.level.saveddata.maps.MapDecoration;
 
 /**
  * One explorer map per map trade kind of a villager, keyed by the structure destination and decoration of the
@@ -43,11 +36,9 @@ import net.minecraft.world.level.saveddata.maps.MapDecorationType;
  */
 public final class MapCache {
     private static final ThreadLocal<Active> ACTIVE = new ThreadLocal<>();
-    private static final Codec<Entry> ENTRY_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            TagKey.codec(Registries.STRUCTURE).fieldOf("destination").forGetter(entry -> entry.key().destination()),
-            ResourceKey.codec(Registries.MAP_DECORATION_TYPE).fieldOf("decoration").forGetter(entry -> entry.key().decoration()),
-            ItemStack.CODEC.fieldOf("map").forGetter(Entry::map)
-    ).apply(instance, (destination, decoration, map) -> new Entry(new Key(destination, decoration), map)));
+    private static final String DESTINATION_KEY = "destination";
+    private static final String DECORATION_KEY = "decoration";
+    private static final String MAP_KEY = "map";
 
     private final Map<Key, ItemStack> maps = new LinkedHashMap<>();
 
@@ -63,7 +54,9 @@ public final class MapCache {
         List<MapListing> listings = new ArrayList<>();
         pool.values().forEach(level -> {
             for (VillagerTrades.ItemListing listing : level) {
-                collectMapListings(listing, listings);
+                if (listing instanceof MapListing map) {
+                    listings.add(map);
+                }
             }
         });
         if (listings.isEmpty()) {
@@ -71,14 +64,13 @@ public final class MapCache {
         }
         for (MerchantOffer offer : offers) {
             ItemStack result = offer.getResult();
-            if (!result.is(Items.FILLED_MAP) || !result.has(DataComponents.MAP_ID)) {
+            if (!result.is(Items.FILLED_MAP) || MapItem.getMapId(result) == null) {
                 continue;
             }
             Set<Key> kinds = new HashSet<>();
             for (MapListing listing : listings) {
-                Key key = key(listing);
-                if (key != null && isMapOf(result, listing)) {
-                    kinds.add(key);
+                if (isMapOf(result, listing)) {
+                    kinds.add(key(listing));
                 }
             }
             if (kinds.size() == 1) {
@@ -103,37 +95,49 @@ public final class MapCache {
     @Nullable
     public static MerchantOffer cachedOffer(Entity trader, MapListing listing) {
         MapCache cache = active(trader);
-        Key key = cache != null ? key(listing) : null;
-        ItemStack map = key != null ? cache.maps.get(key) : null;
+        ItemStack map = cache != null ? cache.maps.get(key(listing)) : null;
         if (map == null) {
             return null;
         }
-        return new MerchantOffer(new ItemCost(Items.EMERALD, listing.villagertraderotation$getEmeraldCost()), Optional.of(new ItemCost(Items.COMPASS)),
+        return new MerchantOffer(new ItemStack(Items.EMERALD, listing.villagertraderotation$getEmeraldCost()), new ItemStack(Items.COMPASS),
                 map.copy(), listing.villagertraderotation$getMaxUses(), listing.villagertraderotation$getVillagerXp(), 0.2F);
     }
 
     public static void store(Entity trader, MapListing listing, @Nullable MerchantOffer offer) {
         MapCache cache = active(trader);
-        Key key = cache != null && offer != null ? key(listing) : null;
-        if (key != null) {
-            cache.maps.put(key, offer.getResult().copy());
+        if (cache != null && offer != null) {
+            cache.maps.put(key(listing), offer.getResult().copy());
         }
     }
 
-    Optional<Tag> save(RegistryOps<Tag> ops) {
-        List<Entry> entries = maps.entrySet().stream().map(entry -> new Entry(entry.getKey(), entry.getValue())).toList();
-        return ENTRY_CODEC.listOf().encodeStart(ops, entries)
-                .resultOrPartial(Util.prefix("Failed to save the map cache: ", VillagerTradeRotation.LOGGER::error));
+    ListTag save() {
+        ListTag list = new ListTag();
+        maps.forEach((key, map) -> {
+            CompoundTag entry = new CompoundTag();
+            entry.putString(DESTINATION_KEY, key.destination().location().toString());
+            entry.putString(DECORATION_KEY, decorationId(key.decoration()));
+            entry.put(MAP_KEY, map.save(new CompoundTag()));
+            list.add(entry);
+        });
+        return list;
     }
 
-    void load(RegistryOps<Tag> ops, @Nullable Tag tag) {
+    void load(@Nullable Tag tag) {
         maps.clear();
-        if (tag == null) {
+        if (!(tag instanceof ListTag list)) {
             return;
         }
-        ENTRY_CODEC.listOf().parse(ops, tag)
-                .resultOrPartial(Util.prefix("Failed to load the map cache: ", VillagerTradeRotation.LOGGER::warn))
-                .ifPresent(entries -> entries.forEach(entry -> maps.put(entry.key(), entry.map())));
+        for (int i = 0; i < list.size(); i++) {
+            CompoundTag entry = list.getCompound(i);
+            ResourceLocation destination = ResourceLocation.tryParse(entry.getString(DESTINATION_KEY));
+            MapDecoration.Type decoration = decoration(entry.getString(DECORATION_KEY));
+            ItemStack map = ItemStack.of(entry.getCompound(MAP_KEY));
+            if (destination == null || decoration == null || map.isEmpty()) {
+                VillagerTradeRotation.LOGGER.warn("Failed to load the map cache entry {}", entry);
+                continue;
+            }
+            maps.put(new Key(TagKey.create(Registries.STRUCTURE, destination), decoration), map);
+        }
     }
 
     @Nullable
@@ -142,36 +146,48 @@ public final class MapCache {
         return active != null && active.villager() == trader ? active.cache() : null;
     }
 
-    private static void collectMapListings(VillagerTrades.ItemListing listing, List<MapListing> listings) {
-        if (listing instanceof MapListing map) {
-            listings.add(map);
-        } else if (listing instanceof TypeSpecificTradeAccessor typeSpecific) {
-            typeSpecific.villagertraderotation$getTrades().values().forEach(inner -> collectMapListings(inner, listings));
-        }
-    }
-
     private static boolean isMapOf(ItemStack map, MapListing listing) {
-        Component name = map.get(DataComponents.ITEM_NAME);
-        if (name == null || !(name.getContents() instanceof TranslatableContents translatable)
+        if (!map.hasCustomHoverName() || !(map.getHoverName().getContents() instanceof TranslatableContents translatable)
                 || !translatable.getKey().equals(listing.villagertraderotation$getDisplayName())) {
             return false;
         }
-        ResourceKey<MapDecorationType> decoration = listing.villagertraderotation$getDecoration().unwrapKey().orElse(null);
-        return decoration != null && map.getOrDefault(DataComponents.MAP_DECORATIONS, MapDecorations.EMPTY).decorations().values().stream()
-                .anyMatch(entry -> entry.type().is(decoration));
+        CompoundTag tag = map.getTag();
+        ListTag decorations = tag != null ? tag.getList("Decorations", Tag.TAG_COMPOUND) : new ListTag();
+        for (int i = 0; i < decorations.size(); i++) {
+            if (decorations.getCompound(i).getByte("type") == listing.villagertraderotation$getDecoration().getIcon()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static Key key(MapListing listing) {
+        return new Key(listing.villagertraderotation$getDestination(), listing.villagertraderotation$getDecoration());
+    }
+
+    /**
+     * The decoration is saved under the ID it has as a registry entry in later Minecraft versions, for example
+     * "minecraft:monument".
+     */
+    private static String decorationId(MapDecoration.Type decoration) {
+        return ResourceLocation.DEFAULT_NAMESPACE + ":" + decoration.name().toLowerCase(Locale.ROOT);
     }
 
     @Nullable
-    private static Key key(MapListing listing) {
-        return listing.villagertraderotation$getDecoration().unwrapKey()
-                .map(decoration -> new Key(listing.villagertraderotation$getDestination(), decoration))
-                .orElse(null);
+    private static MapDecoration.Type decoration(String id) {
+        ResourceLocation location = ResourceLocation.tryParse(id);
+        if (location == null || !location.getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE)) {
+            return null;
+        }
+        for (MapDecoration.Type type : MapDecoration.Type.values()) {
+            if (type.name().toLowerCase(Locale.ROOT).equals(location.getPath())) {
+                return type;
+            }
+        }
+        return null;
     }
 
-    private record Key(TagKey<Structure> destination, ResourceKey<MapDecorationType> decoration) {
-    }
-
-    private record Entry(Key key, ItemStack map) {
+    private record Key(TagKey<Structure> destination, MapDecoration.Type decoration) {
     }
 
     private record Active(Villager villager, MapCache cache) {

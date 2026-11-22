@@ -30,12 +30,12 @@ public abstract class VillagerMixin implements RotationDataHolder {
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
     private void villagertraderotation$saveRotationData(CompoundTag tag, CallbackInfo ci) {
-        villagertraderotation$rotationData.save(((Villager) (Object) this).registryAccess(), tag);
+        villagertraderotation$rotationData.save(tag);
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
     private void villagertraderotation$loadRotationData(CompoundTag tag, CallbackInfo ci) {
-        villagertraderotation$rotationData.load(((Villager) (Object) this).registryAccess(), tag);
+        villagertraderotation$rotationData.load(tag);
     }
 
     @Inject(method = "shouldRestock", at = @At("HEAD"))

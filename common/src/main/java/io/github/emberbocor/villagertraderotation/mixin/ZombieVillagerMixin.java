@@ -28,11 +28,11 @@ public abstract class ZombieVillagerMixin implements RotationDataHolder {
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
     private void villagertraderotation$saveRotationData(CompoundTag tag, CallbackInfo ci) {
-        villagertraderotation$rotationData.save(((ZombieVillager) (Object) this).registryAccess(), tag);
+        villagertraderotation$rotationData.save(tag);
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
     private void villagertraderotation$loadRotationData(CompoundTag tag, CallbackInfo ci) {
-        villagertraderotation$rotationData.load(((ZombieVillager) (Object) this).registryAccess(), tag);
+        villagertraderotation$rotationData.load(tag);
     }
 }

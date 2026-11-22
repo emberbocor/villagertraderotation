@@ -9,14 +9,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import io.github.emberbocor.villagertraderotation.rotation.MapCache;
 import io.github.emberbocor.villagertraderotation.rotation.MapListing;
-import net.minecraft.core.Holder;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.levelgen.structure.Structure;
-import net.minecraft.world.level.saveddata.maps.MapDecorationType;
+import net.minecraft.world.level.saveddata.maps.MapDecoration;
 
+// Package-private in vanilla; Fabric API widens it to public, which the Fabric Mixin processor reports.
+@SuppressWarnings("public-target")
 @Mixin(targets = "net.minecraft.world.entity.npc.VillagerTrades$TreasureMapForEmeralds")
 public abstract class TreasureMapForEmeraldsMixin implements MapListing {
     @Shadow
@@ -33,7 +34,7 @@ public abstract class TreasureMapForEmeraldsMixin implements MapListing {
 
     @Shadow
     @Final
-    private Holder<MapDecorationType> destinationType;
+    private MapDecoration.Type destinationType;
 
     @Shadow
     @Final
@@ -59,7 +60,7 @@ public abstract class TreasureMapForEmeraldsMixin implements MapListing {
     }
 
     @Override
-    public Holder<MapDecorationType> villagertraderotation$getDecoration() {
+    public MapDecoration.Type villagertraderotation$getDecoration() {
         return destinationType;
     }
 

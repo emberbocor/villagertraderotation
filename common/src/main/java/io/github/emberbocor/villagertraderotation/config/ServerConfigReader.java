@@ -61,6 +61,8 @@ final class ServerConfigReader {
         return fallback;
     }
 
+    // Forge deprecates the vanilla profession registry in favour of ForgeRegistries, which common code cannot use.
+    @SuppressWarnings("deprecation")
     private Set<ResourceLocation> excludedProfessions(UnmodifiableConfig config, Set<ResourceLocation> fallback) {
         Object value = config.get("excludedProfessions");
         if (value == null) {

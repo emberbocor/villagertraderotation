@@ -36,12 +36,12 @@ Available for NeoForge, Forge and Fabric.
 
 | | NeoForge | Forge | Fabric |
 |---|---|---|---|
-| Minecraft | 26.1–26.1.2 | 26.1–26.1.2 | 26.1–26.1.2 |
-| Loader | NeoForge 26.1.0.1-beta or newer for your Minecraft version | Forge 62.0.0 (26.1), 63.0.0 (26.1.1) or 64.0.0 (26.1.2) or newer for that Minecraft version | Fabric Loader 0.18.4 or newer |
-| Other | | | Fabric API 0.144.0+26.1 or newer for Minecraft 26.1–26.1.2 |
-| Jar | `villagertraderotation-neoforge-26.1-26.1.2-<version>.jar` | `villagertraderotation-forge-26.1-26.1.2-<version>.jar` | `villagertraderotation-fabric-26.1-26.1.2-<version>.jar` |
+| Minecraft | 26.2 | 26.2 | 26.2 |
+| Loader | NeoForge 26.2.0.0-beta or newer | Forge 65.0.0 or newer | Fabric Loader 0.18.4 or newer |
+| Other | | | Fabric API 0.152.1+26.2 or newer for Minecraft 26.2 |
+| Jar | `villagertraderotation-neoforge-26.2-<version>.jar` | `villagertraderotation-forge-26.2-<version>.jar` | `villagertraderotation-fabric-26.2-<version>.jar` |
 
-On Minecraft 26.1–26.1.2, NeoForge and Forge are separate loaders that do not run each other's mods, so each has its own jar. Pick the jar that matches your server's loader.
+On Minecraft 26.2, NeoForge and Forge are separate loaders that do not run each other's mods, so each has its own jar. Pick the jar that matches your server's loader.
 
 The Fabric jar bundles [NightConfig](https://github.com/TheElectronWill/night-config) (core and toml, LGPL-3.0) to read the TOML config. NeoForge and Forge already ship it.
 

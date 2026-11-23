@@ -19,9 +19,9 @@ public final class RotationData {
     private static final String LAST_DAY_KEY = "last_day";
     private static final String MAPS_KEY = "maps";
     // The cached map items have no vanilla data fixer, so a cache saved by another game version is not loaded.
-    // Minecraft 26.1 to 26.1.2 share the item format, so caches from those versions are accepted.
+    // Caches saved by Minecraft 26.2 (data version 4903) up to the running version are accepted.
     private static final String DATA_VERSION_KEY = "data_version";
-    private static final int FIRST_DATA_VERSION = 4786;
+    private static final int FIRST_DATA_VERSION = 4903;
 
     @Nullable
     private Long lastDay;

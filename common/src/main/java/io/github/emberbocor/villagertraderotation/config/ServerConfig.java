@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.Set;
 
 import io.github.emberbocor.villagertraderotation.platform.Services;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class ServerConfig {
     static final int MIN_INTERVAL_DAYS = 1;
@@ -26,7 +26,7 @@ public final class ServerConfig {
         return settings;
     }
 
-    public record Settings(boolean enabled, int rerollIntervalDays, Set<ResourceLocation> excludedProfessions) {
+    public record Settings(boolean enabled, int rerollIntervalDays, Set<Identifier> excludedProfessions) {
         public Settings {
             excludedProfessions = Set.copyOf(excludedProfessions);
         }

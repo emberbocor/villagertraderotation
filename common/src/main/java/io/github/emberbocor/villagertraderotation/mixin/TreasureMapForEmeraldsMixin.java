@@ -10,6 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import io.github.emberbocor.villagertraderotation.rotation.MapCache;
 import io.github.emberbocor.villagertraderotation.rotation.MapListing;
 import net.minecraft.core.Holder;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -17,7 +18,7 @@ import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
 
-@Mixin(targets = "net.minecraft.world.entity.npc.VillagerTrades$TreasureMapForEmeralds")
+@Mixin(targets = "net.minecraft.world.entity.npc.villager.VillagerTrades$TreasureMapForEmeralds")
 public abstract class TreasureMapForEmeraldsMixin implements MapListing {
     @Shadow
     @Final
@@ -74,7 +75,7 @@ public abstract class TreasureMapForEmeraldsMixin implements MapListing {
     }
 
     @Inject(method = "getOffer", at = @At("HEAD"), cancellable = true)
-    private void villagertraderotation$offerCachedMap(Entity trader, RandomSource random, CallbackInfoReturnable<MerchantOffer> cir) {
+    private void villagertraderotation$offerCachedMap(ServerLevel level, Entity trader, RandomSource random, CallbackInfoReturnable<MerchantOffer> cir) {
         MerchantOffer offer = MapCache.cachedOffer(trader, this);
         if (offer != null) {
             cir.setReturnValue(offer);
@@ -82,7 +83,7 @@ public abstract class TreasureMapForEmeraldsMixin implements MapListing {
     }
 
     @Inject(method = "getOffer", at = @At("RETURN"))
-    private void villagertraderotation$cacheFoundMap(Entity trader, RandomSource random, CallbackInfoReturnable<MerchantOffer> cir) {
+    private void villagertraderotation$cacheFoundMap(ServerLevel level, Entity trader, RandomSource random, CallbackInfoReturnable<MerchantOffer> cir) {
         MapCache.store(trader, this, cir.getReturnValue());
     }
 }

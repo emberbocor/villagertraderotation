@@ -8,8 +8,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import io.github.emberbocor.villagertraderotation.rotation.RotationData;
 import io.github.emberbocor.villagertraderotation.rotation.RotationDataHolder;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.entity.monster.ZombieVillager;
+import net.minecraft.world.entity.monster.zombie.ZombieVillager;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 @Mixin(ZombieVillager.class)
 public abstract class ZombieVillagerMixin implements RotationDataHolder {
@@ -27,12 +28,12 @@ public abstract class ZombieVillagerMixin implements RotationDataHolder {
     }
 
     @Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
-    private void villagertraderotation$saveRotationData(CompoundTag tag, CallbackInfo ci) {
-        villagertraderotation$rotationData.save(((ZombieVillager) (Object) this).registryAccess(), tag);
+    private void villagertraderotation$saveRotationData(ValueOutput output, CallbackInfo ci) {
+        villagertraderotation$rotationData.save(((ZombieVillager) (Object) this).registryAccess(), output);
     }
 
     @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
-    private void villagertraderotation$loadRotationData(CompoundTag tag, CallbackInfo ci) {
-        villagertraderotation$rotationData.load(((ZombieVillager) (Object) this).registryAccess(), tag);
+    private void villagertraderotation$loadRotationData(ValueInput input, CallbackInfo ci) {
+        villagertraderotation$rotationData.load(((ZombieVillager) (Object) this).registryAccess(), input);
     }
 }

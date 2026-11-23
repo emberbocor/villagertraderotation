@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import io.github.emberbocor.villagertraderotation.VillagerTradeRotation;
 import io.github.emberbocor.villagertraderotation.platform.Services;
-import net.minecraft.world.entity.npc.Villager;
+import net.minecraft.world.entity.npc.villager.Villager;
 
 /**
  * Optional Villager Trade Peek support without a dependency. After a rotation the stored future trades are removed,

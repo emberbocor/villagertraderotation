@@ -9,7 +9,7 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 
 import io.github.emberbocor.villagertraderotation.VillagerTradeRotation;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 final class ServerConfigReader {
     private static final Set<String> KEYS = Set.of("enabled", "rerollIntervalDays", "excludedProfessions");
@@ -61,7 +61,7 @@ final class ServerConfigReader {
         return fallback;
     }
 
-    private Set<ResourceLocation> excludedProfessions(UnmodifiableConfig config, Set<ResourceLocation> fallback) {
+    private Set<Identifier> excludedProfessions(UnmodifiableConfig config, Set<Identifier> fallback) {
         Object value = config.get("excludedProfessions");
         if (value == null) {
             return fallback;
@@ -71,9 +71,9 @@ final class ServerConfigReader {
                     file, value);
             return fallback;
         }
-        Set<ResourceLocation> professions = new HashSet<>();
+        Set<Identifier> professions = new HashSet<>();
         for (Object element : list) {
-            ResourceLocation id = element instanceof String string ? ResourceLocation.tryParse(string) : null;
+            Identifier id = element instanceof String string ? Identifier.tryParse(string) : null;
             if (id == null) {
                 VillagerTradeRotation.LOGGER.warn("{}: excludedProfessions must only hold profession IDs such as \"minecraft:librarian\", got '{}'; using []",
                         file, element);
@@ -81,7 +81,7 @@ final class ServerConfigReader {
             }
             professions.add(id);
         }
-        for (ResourceLocation id : professions) {
+        for (Identifier id : professions) {
             if (!BuiltInRegistries.VILLAGER_PROFESSION.containsKey(id)) {
                 VillagerTradeRotation.LOGGER.warn("{}: excludedProfessions contains '{}', which is not a known profession", file, id);
             }

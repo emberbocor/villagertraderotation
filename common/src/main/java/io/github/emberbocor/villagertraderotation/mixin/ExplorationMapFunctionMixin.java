@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import io.github.emberbocor.villagertraderotation.rotation.MapCache;
 import net.minecraft.core.Holder;
-import net.minecraft.tags.TagKey;
+import net.minecraft.core.HolderSet;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.saveddata.maps.MapDecorationType;
@@ -20,7 +20,7 @@ import net.minecraft.world.level.storage.loot.functions.ExplorationMapFunction;
 public abstract class ExplorationMapFunctionMixin {
     @Shadow
     @Final
-    private TagKey<Structure> destination;
+    private HolderSet<Structure> destination;
 
     @Shadow
     @Final

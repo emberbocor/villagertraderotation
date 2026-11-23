@@ -36,12 +36,12 @@ Available for NeoForge, Forge and Fabric.
 
 | | NeoForge | Forge | Fabric |
 |---|---|---|---|
-| Minecraft | 1.21.11 | 1.21.11 | 1.21.11 |
-| Loader | NeoForge 21.11.42 or newer | Forge 61.0.1 or newer | Fabric Loader 0.17.3 or newer |
-| Other | | | Fabric API 0.139.5 or newer |
-| Jar | `villagertraderotation-neoforge-1.21.11-<version>.jar` | `villagertraderotation-forge-1.21.11-<version>.jar` | `villagertraderotation-fabric-1.21.11-<version>.jar` |
+| Minecraft | 26.1–26.1.2 | 26.1–26.1.2 | 26.1–26.1.2 |
+| Loader | NeoForge 26.1.0.1-beta or newer for your Minecraft version | Forge 62.0.0 (26.1), 63.0.0 (26.1.1) or 64.0.0 (26.1.2) or newer for that Minecraft version | Fabric Loader 0.18.4 or newer |
+| Other | | | Fabric API 0.144.0+26.1 or newer for Minecraft 26.1–26.1.2 |
+| Jar | `villagertraderotation-neoforge-26.1-26.1.2-<version>.jar` | `villagertraderotation-forge-26.1-26.1.2-<version>.jar` | `villagertraderotation-fabric-26.1-26.1.2-<version>.jar` |
 
-On Minecraft 1.21.11, NeoForge and Forge are separate loaders that do not run each other's mods, so each has its own jar. Pick the jar that matches your server's loader.
+On Minecraft 26.1–26.1.2, NeoForge and Forge are separate loaders that do not run each other's mods, so each has its own jar. Pick the jar that matches your server's loader.
 
 The Fabric jar bundles [NightConfig](https://github.com/TheElectronWill/night-config) (core and toml, LGPL-3.0) to read the TOML config. NeoForge and Forge already ship it.
 
@@ -92,7 +92,7 @@ The world opens normally. The mod's data is stored on each villager under its ow
 - **Villager Trade Peek:** optional, no extra setup. When trades rotate, the future trades Villager Trade Peek stored for the villager are cleared, and Villager Trade Peek previews new ones the next time the trading screen opens. Without Villager Trade Peek, this part simply does nothing.
 - **Villager Trade Lock:** works as is. Villager Trade Lock only remembers trades at the moment a villager loses its profession, so it remembers the trades of the latest rotation and gives those back when the villager takes the same profession again. They rotate again when the next interval comes.
 - **Villager Trade Swap:** works as is. Swapped trades are normal trades, so they are replaced with the rest when the interval comes.
-- **Mods that change the trade pools:** trades that other mods add through the standard villager trade events of NeoForge, Forge or Fabric are part of the pools, so they show up in rotations too. Every level gets two trades, as in vanilla. A profession without a trade pool, for example one whose mod creates trades in its own way, is not rotated and keeps its trades.
+- **Mods and data packs that change the trades:** trades that other mods or data packs add to the villager trade sets are part of the pools, so they show up in rotations too. Every level gets as many trades as its trade set gives, as in vanilla. A profession without trade sets, for example one whose mod creates trades in its own way, is not rotated and keeps its trades.
 
 ## Building from source
 

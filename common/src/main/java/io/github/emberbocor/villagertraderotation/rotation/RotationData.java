@@ -19,7 +19,9 @@ public final class RotationData {
     private static final String LAST_DAY_KEY = "last_day";
     private static final String MAPS_KEY = "maps";
     // The cached map items have no vanilla data fixer, so a cache saved by another game version is not loaded.
+    // Minecraft 26.1 to 26.1.2 share the item format, so caches from those versions are accepted.
     private static final String DATA_VERSION_KEY = "data_version";
+    private static final int FIRST_DATA_VERSION = 4786;
 
     @Nullable
     private Long lastDay;
@@ -59,7 +61,8 @@ public final class RotationData {
         input.read(NBT_KEY, CompoundTag.CODEC).ifPresent(data -> {
             lastDay = data.getLong(LAST_DAY_KEY).orElse(null);
             Tag saved = data.get(MAPS_KEY);
-            if (saved != null && data.getIntOr(DATA_VERSION_KEY, 0) != currentDataVersion()) {
+            int dataVersion = data.getIntOr(DATA_VERSION_KEY, 0);
+            if (saved != null && (dataVersion < FIRST_DATA_VERSION || dataVersion > currentDataVersion())) {
                 VillagerTradeRotation.LOGGER.debug("Discarding a map cache saved by another game version");
                 saved = null;
             }
